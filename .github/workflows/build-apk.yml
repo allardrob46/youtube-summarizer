@@ -1,0 +1,111 @@
+# Builds an installable Android APK on GitHub's servers. No Expo account needed.
+#
+# How to run it:
+#   - Manually: GitHub > Actions > "Build APK" > Run workflow.
+#   - Or push a tag like v1.0.0.
+# The APK appears as a download on the run page (Artifacts) and on a GitHub
+# Release, which is the easiest place to grab it from a phone.
+#
+# Signing: the release build is signed with the debug key from the Expo/React
+# Native template. Fine for installing on your own phone; not for the Play Store.
+#
+# Secrets (Settings > Secrets and variables > Actions), all optional:
+#   SERVER_URL  your server's https://.../summarize address, baked into the app.
+# The passcode is deliberately NOT baked in, because Releases on a public repo
+# can be downloaded by anyone. Type it into the app once under Connection.
+
+name: Build APK
+
+on:
+  workflow_dispatch:
+    inputs:
+      release:
+        description: "Also publish a GitHub Release with the APK"
+        type: boolean
+        default: true
+  push:
+    tags:
+      - "v*"
+
+permissions:
+  contents: write
+
+concurrency:
+  group: build-apk-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    timeout-minutes: 60
+    steps:
+      - name: Check out the code
+        uses: actions/checkout@v4
+
+      - name: Set up Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+
+      - name: Set up Java
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: 17
+          cache: gradle
+
+      - name: Install packages
+        run: npm ci
+
+      - name: Type-check the app
+        run: npx tsc --noEmit
+
+      - name: Test the server (offline)
+        working-directory: server
+        run: |
+          python3 -m pip install --quiet -r requirements.txt
+          python3 -m unittest -v test_app.py
+
+      - name: Write build-time settings
+        env:
+          SERVER_URL: ${{ secrets.SERVER_URL }}
+        run: |
+          echo "EXPO_PUBLIC_SERVER_URL=${SERVER_URL}" > .env
+          echo "EXPO_PUBLIC_APP_PASSCODE=" >> .env
+          if [ -z "$SERVER_URL" ]; then echo "No SERVER_URL secret: the APK starts in demo mode (set the server in-app)."; fi
+
+      - name: Generate the Android project
+        run: npx expo prebuild --platform android --no-install --clean
+
+      - name: Build the APK
+        working-directory: android
+        # arm64-v8a covers every modern Android phone and halves the build time.
+        run: ./gradlew assembleRelease --no-daemon -PreactNativeArchitectures=arm64-v8a
+
+      - name: Name the APK
+        id: apk
+        run: |
+          VERSION=$(node -p "require('./app.json').expo.version")
+          NAME="yt-summarizer-${VERSION}-build${GITHUB_RUN_NUMBER}.apk"
+          cp android/app/build/outputs/apk/release/app-release.apk "$NAME"
+          echo "name=$NAME" >> "$GITHUB_OUTPUT"
+
+      - name: Upload the APK to this run
+        uses: actions/upload-artifact@v4
+        with:
+          name: ${{ steps.apk.outputs.name }}
+          path: ${{ steps.apk.outputs.name }}
+          if-no-files-found: error
+
+      - name: Publish a GitHub Release
+        if: startsWith(github.ref, 'refs/tags/') || (github.event_name == 'workflow_dispatch' && inputs.release)
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: ${{ startsWith(github.ref, 'refs/tags/') && github.ref_name || format('build-{0}', github.run_number) }}
+          name: ${{ startsWith(github.ref, 'refs/tags/') && github.ref_name || format('Build {0}', github.run_number) }}
+          prerelease: ${{ !startsWith(github.ref, 'refs/tags/') }}
+          files: ${{ steps.apk.outputs.name }}
+          body: |
+            Open this page on your Android phone, tap the .apk file below, and allow installs from your browser when asked.
+            Signed with a debug key: fine for your own phone, not for the Play Store.

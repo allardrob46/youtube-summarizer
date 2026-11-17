@@ -1,0 +1,83 @@
+@import "tailwindcss";
+@import "uniwind";
+
+@import "heroui-native/styles";
+
+/* End-user path: heroui-native lives in the project's node_modules, one
+   level up from this src/global.css file. */
+@source '../node_modules/heroui-native/lib';
+
+/*
+  Theme: "margin notes".
+  A study notebook rather than a dashboard: warm paper, ink-coloured text,
+  and one red-pencil accent used only where your attention should go
+  (the main action and the timestamps). Follows the phone's light/dark setting.
+*/
+@layer theme {
+  :root {
+    @variant light {
+      --background: oklch(0.968 0.012 85);
+      --foreground: oklch(0.24 0.018 60);
+
+      --surface: oklch(0.99 0.006 85);
+      --surface-foreground: var(--foreground);
+      --surface-secondary: oklch(0.945 0.014 82);
+      --surface-secondary-foreground: var(--foreground);
+      --surface-tertiary: oklch(0.925 0.016 80);
+      --surface-tertiary-foreground: var(--foreground);
+
+      --overlay: oklch(0.99 0.006 85);
+      --overlay-foreground: var(--foreground);
+
+      /* 0.48 lightness keeps muted text above 4.5:1 on the paper background. */
+      --muted: oklch(0.48 0.02 60);
+
+      /* Red pencil. Dark enough that white text on it passes AA. */
+      --accent: oklch(0.52 0.17 33);
+      --accent-foreground: oklch(0.99 0.004 85);
+
+      --field-background: oklch(0.99 0.006 85);
+      --field-foreground: var(--foreground);
+      --field-border: oklch(0.88 0.014 80);
+
+      --danger: oklch(0.5 0.19 25);
+      --danger-foreground: oklch(0.99 0.004 85);
+
+      --border: oklch(0.89 0.014 80);
+      --separator: oklch(0.84 0.014 80);
+      --link: var(--accent);
+    }
+
+    @variant dark {
+      --background: oklch(0.17 0.008 60);
+      --foreground: oklch(0.93 0.012 85);
+
+      --surface: oklch(0.215 0.01 60);
+      --surface-foreground: var(--foreground);
+      --surface-secondary: oklch(0.25 0.01 60);
+      --surface-secondary-foreground: var(--foreground);
+      --surface-tertiary: oklch(0.28 0.01 60);
+      --surface-tertiary-foreground: var(--foreground);
+
+      --overlay: oklch(0.23 0.01 60);
+      --overlay-foreground: var(--foreground);
+
+      --muted: oklch(0.72 0.016 75);
+
+      /* Lighter pencil on dark paper, with dark text on it for contrast. */
+      --accent: oklch(0.72 0.15 40);
+      --accent-foreground: oklch(0.18 0.01 60);
+
+      --field-background: oklch(0.215 0.01 60);
+      --field-foreground: var(--foreground);
+      --field-border: oklch(0.32 0.01 60);
+
+      --danger: oklch(0.68 0.17 25);
+      --danger-foreground: oklch(0.17 0.008 60);
+
+      --border: oklch(0.3 0.01 60);
+      --separator: oklch(0.36 0.01 60);
+      --link: var(--accent);
+    }
+  }
+}

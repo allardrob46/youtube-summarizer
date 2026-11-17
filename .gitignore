@@ -1,0 +1,61 @@
+# Dependencies
+node_modules/
+
+# Secrets: real env files never go in the repo. Examples do.
+.env
+.env.*
+!.env.example
+server/.env
+!server/.env.example
+
+# Signing keys and keystores
+*.jks
+*.keystore
+*.p8
+*.p12
+*.key
+*.pem
+*.mobileprovision
+keystore.properties
+
+# Generated native folders (made fresh by `expo prebuild`)
+/android
+/ios
+android/
+ios/
+
+# Expo
+.expo/
+dist/
+web-build/
+expo-env.d.ts
+
+# Uniwind (generated on first `expo start`)
+uniwind-types.d.ts
+
+# Build output
+*.apk
+*.aab
+.kotlin/
+*.orig.*
+
+# Python
+__pycache__/
+*.pyc
+server/.venv/
+.venv/
+
+# Metro
+.metro-health-check*
+
+# Debug
+npm-debug.*
+yarn-debug.*
+yarn-error.*
+
+# OS / editor
+.DS_Store
+Thumbs.db
+
+# TypeScript
+*.tsbuildinfo

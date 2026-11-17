@@ -1,0 +1,30 @@
+# /etc/systemd/system/yt-summarizer.service
+# Assumes the repo is cloned to /opt/youtube-summarizer and a venv exists at
+# /opt/youtube-summarizer/server/.venv (see README). Secrets live in server/.env.
+#   sudo systemctl daemon-reload && sudo systemctl enable --now yt-summarizer
+#   journalctl -u yt-summarizer -f      (to watch the logs)
+
+[Unit]
+Description=YouTube Summarizer middleman server
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+Type=simple
+User=ytsum
+Group=ytsum
+WorkingDirectory=/opt/youtube-summarizer/server
+EnvironmentFile=/opt/youtube-summarizer/server/.env
+ExecStart=/opt/youtube-summarizer/server/.venv/bin/python app.py
+Restart=on-failure
+RestartSec=5
+
+# Hardening: the service only needs to read its own folder and reach the internet.
+NoNewPrivileges=true
+ProtectSystem=strict
+ProtectHome=true
+PrivateTmp=true
+ReadOnlyPaths=/opt/youtube-summarizer/server
+
+[Install]
+WantedBy=multi-user.target

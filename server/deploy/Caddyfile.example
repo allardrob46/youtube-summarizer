@@ -1,0 +1,27 @@
+# Add to /etc/caddy/Caddyfile, swap in your own domain, then: sudo systemctl reload caddy
+# Caddy gets the HTTPS certificate on its own. The app's server address becomes
+#   https://yt.example.com/summarize
+
+yt.example.com {
+	encode gzip
+
+	# Only the two routes the server has.
+	@api path /summarize /health
+	handle @api {
+		reverse_proxy 127.0.0.1:8787 {
+			# Long videos are summarized in parts and can take a few minutes.
+			transport http {
+				read_timeout 5m
+				write_timeout 5m
+			}
+		}
+	}
+
+	handle {
+		respond 404
+	}
+
+	request_body {
+		max_size 32KB
+	}
+}
